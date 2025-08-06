@@ -1,3 +1,9 @@
+import os
+import socket
+import subprocess
+import threading
+import time
+
 from PyQt6.QtWidgets import (QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QTextEdit,
                              QScrollArea, QWidget, QListWidget, QComboBox, QTreeWidget, QTreeWidgetItem, QGridLayout)
 from PyQt6.QtCore import Qt, QFileSystemWatcher
@@ -6,9 +12,8 @@ import style_sheet as ss
 from logger import Logger
 
 from Backend_lib.Linux import hci_commands as hci
-from utils import start_dump_logs, run_hci_cmd, get_connection_handles
+from utils import run,keep_l2cap_connection_alive, start_dump_logs, run_hci_cmd, get_connection_handles
 from Backend_lib.Linux.bluez import BluetoothDeviceManager
-
 
 class TestControllerUI(QWidget):
 
@@ -123,7 +128,6 @@ class TestControllerUI(QWidget):
         self.file_watcher.fileChanged.connect(self.update_log)
         self.logs_layout.addWidget(self.dump_log_output)
 
-
         # Add the logs_layout to the main_layout in column 2, row 0
         main_layout.addLayout(self.logs_layout, 0, 2)
 
@@ -214,6 +218,7 @@ class TestControllerUI(QWidget):
             label.setMaximumHeight(30)
 
             if 'Connection_Handle' in key:
+
                 setattr(self, key, QComboBox())
                 combo_box = getattr(self, key)
                 combo_box.setPlaceholderText("Connection Handles")
@@ -272,6 +277,34 @@ class TestControllerUI(QWidget):
         self.handle = text
         print(self.handle)
 
+    '''def execute_hci_cmd(self):
+        """
+        Gathers parameters from the UI and sends the HCI command via the backend controller.
+
+        args: None
+        returns: None
+        """
+        parameters = []
+        handles = get_connection_handles(self.log, self.interface)
+
+        for parameter in getattr(hci, self.ocf.lower().replace(' ', '_'))[self.ogf][1]:
+            key = list(parameter.keys())[0]
+
+            if isinstance(getattr(self, key), QComboBox):
+                parameters.append(handles[self.handle])
+                self.handle = None
+                continue
+
+            text_value = getattr(self, key).toPlainText()
+            if text_value == 'None':
+                break
+            parameters.append(text_value)
+
+        setattr(self, f"{self.ogf}_values", parameters)
+        self.log.debug(f"{self.ocf=} {self.ogf=} {parameters=}")
+        run_hci_cmd(self.ocf, self.ogf, self.interface, self.log, parameters)'''
+
+
     def execute_hci_cmd(self):
         """
         Gathers parameters from the UI and sends the HCI command via the backend controller.
@@ -296,30 +329,24 @@ class TestControllerUI(QWidget):
             parameters.append(text_value)
 
         setattr(self, f"{self.ogf}_values", parameters)
-
-        # Automatically send follow-up commands after Create Connection
-        if self.ocf == "Link Control commands" and self.ogf == "Create Connection":
-            import time
-            time.sleep(1)  # Wait briefly for connection to establish
-
-            # Attempt to extract connection handle from logs
-            try:
-                with open(self.log_file_path, "r") as log_file:
-                    logs = log_file.read()
-                match = re.search(r"Connect Complete.*?handle (\w+)", logs)
-                if match:
-                    conn_handle = match.group(1)
-                    # Send Write Link Supervision Timeout
-                    run_hci_cmd("Controller and Baseband commands", "Write Link Supervision Timeout", self.interface, self.log, [f"0x{conn_handle}", "0xFFFF"])
-                    # Send Authentication Requested
-                    run_hci_cmd("Link Control commands", "Authentication Requested", self.interface, self.log, [f"0x{conn_handle}"])
-                    # Send Set Connection Encryption
-                    run_hci_cmd("Link Control commands", "Set Connection Encryption", self.interface, self.log, [f"0x{conn_handle}", "0x01"])
-            except Exception as e:
-                self.log.debug(f"Post-connection automation failed: {e}")
-
         self.log.debug(f"{self.ocf=} {self.ogf=} {parameters=}")
-        run_hci_cmd(self.ocf, self.ogf, self.interface, self.log, parameters)
+
+        if self.ogf == "Create Connection":
+            try:
+                addr_hex = parameters[0].replace("0x", "").upper()
+
+                if len(addr_hex) != 12:
+                    raise ValueError(f"Invalid Bluetooth address: {addr_hex}")
+
+                bd_addr = ":".join(addr_hex[i:i + 2] for i in range(0, 12, 2))
+                self.log.info(f"[INFO] Starting L2CAP connection to {bd_addr} in background.")
+
+                threading.Thread(target=keep_l2cap_connection_alive, args=(self.log,bd_addr,), daemon=True).start()
+
+            except Exception as e:
+                self.log.error(f"[ERROR] L2CAP setup failed: {e}")
+        else:
+            run_hci_cmd(self.ocf, self.ogf, self.interface, self.log, parameters)
 
     def reset_default_params(self):
         """

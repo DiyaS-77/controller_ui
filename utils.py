@@ -1,3 +1,4 @@
+import socket
 import subprocess
 import re
 import os
@@ -182,6 +183,7 @@ def run_hci_cmd(ogf, command, interface, log, parameters):
     _ogf = ogf.lower().replace(' ', '_')
     _ocf_info = getattr(hci, _ogf)[command]
     hci_command = 'hcitool -i {} cmd {} {}'.format(interface, hci.hci_commands[ogf], _ocf_info[0])
+
     for index in range(len(parameters)):
         param_len = list(_ocf_info[1][index].values())[1] if len(
             _ocf_info[1][index].values()) > 1 else None
@@ -193,6 +195,19 @@ def run_hci_cmd(ogf, command, interface, log, parameters):
     log.info(f"Executing command: {hci_command}")
     return run(log, hci_command)
 
+def keep_l2cap_connection_alive(log, bd_addr):
+    try:
+        log.info(f"[INFO] Connecting L2CAP to {bd_addr}")
+        sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_SEQPACKET, socket.BTPROTO_L2CAP)
+        time.sleep(1)
+        sock.connect((bd_addr, 0x0001))  # Connect to SDP
+
+        log.info(f"[INFO] L2CAP connection active with {bd_addr}")
+        while True:
+            time.sleep(1)  # Keep the socket alive
+
+    except Exception as e:
+        log.error(f"[ERROR] L2CAP connection error: {e}")
 
 
 def get_connection_handles(log, interface):
