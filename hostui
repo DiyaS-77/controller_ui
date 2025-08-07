@@ -1,0 +1,77 @@
+self.gap_button.setStyleSheet("""
+    QPushButton {
+        color: black;
+        background-color: #cce5ff;
+        border: 1px solid #007acc;
+        border-radius: 8px;
+        padding: 6px 12px;
+    }
+    QPushButton:hover {
+        background-color: #b3daff;
+    }
+""")
+
+
+from PyQt6.QtGui import QPixmap, QIcon
+
+def load_connected_devices(self):
+    self.paired_devices = self.bluetooth_device_manager.get_paired_devices()
+    self.connected_devices = self.bluetooth_device_manager.get_connected_devices()
+
+    self.profiles_list_widget.clear()
+
+    # Show GAP button first
+    gap_item = QListWidgetItem("GAP")
+    gap_item.setFont(QFont("Arial", 10, weight=QFont.Weight.Bold))
+    gap_item.setForeground(Qt.GlobalColor.black)
+    self.profiles_list_widget.addItem(gap_item)
+
+    unique_devices = set(self.paired_devices.keys()).union(self.connected_devices.keys())
+
+    for device_address in unique_devices:
+        # Use address only (no names)
+        item = QListWidgetItem(device_address)
+        item.setFont(QFont("Arial", 10))
+        item.setForeground(Qt.GlobalColor.black)
+
+        # Status dot
+        if device_address in self.connected_devices:
+            # Connected = Green Dot
+            item.setIcon(QIcon(":/icons/green_dot.png"))
+        else:
+            # Paired only = Grey Dot
+            item.setIcon(QIcon(":/icons/grey_dot.png"))
+
+        self.profiles_list_widget.addItem(item)
+
+
+controller_details_widget = QWidget()
+controller_details_layout = QFormLayout()
+controller_details_widget.setLayout(controller_details_layout)
+controller_details_widget.setStyleSheet("""
+    QWidget {
+        background-color: #f9f9f9;
+        border: 1px solid #d0d0d0;
+        border-radius: 8px;
+        padding: 10px;
+        font-size: 13px;
+    }
+    QLabel {
+        padding: 2px;
+    }
+""")
+
+# Use pairs of labels
+controller_details_layout.addRow("Controller Name:", QLabel(self.controller.name))
+controller_details_layout.addRow("Controller Address:", QLabel(self.controller.bd_address))
+controller_details_layout.addRow("Link Mode:", QLabel(self.controller.link_mode))
+controller_details_layout.addRow("Link Policy:", QLabel(self.controller.link_policy))
+controller_details_layout.addRow("HCI Version:", QLabel(self.controller.hci_version))
+controller_details_layout.addRow("LMP Version:", QLabel(self.controller.lmp_version))
+controller_details_layout.addRow("Manufacturer:", QLabel(self.controller.manufacturer))
+
+controller_details_widget.setFixedWidth(350)
+self.main_grid_layout.addWidget(controller_details_widget, 3, 0, 8, 2)
+
+
+
