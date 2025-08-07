@@ -190,10 +190,18 @@ class TestApplication(QWidget):
         header_layout.addWidget(self.gap_button)
         header_layout.addStretch()
 
-        self.main_grid_layout.addLayout(header_layout, 0, 0, 1, 2)
+        gap_layout = QVBoxLayout()
+        gap_label = QLabel("GAP Profile")
+        gap_label.setFont(bold_font)
+        gap_label.setStyleSheet("color: black;")
+        gap_layout.addWidget(gap_label)
+        gap_layout.addWidget(self.gap_button)
+        gap_widget = QWidget()
+        gap_widget.setLayout(gap_layout)
+        self.main_grid_layout.addWidget(gap_widget, 0, 0, 1, 2)
 
         self.profiles_list_widget.setFont(bold_font)
-        self.profiles_list_widget.setStyleSheet("border: 2px solid black;" "color: black;" "background: transparent;"; border-radius: 10px;")
+        self.profiles_list_widget.setStyleSheet("border: 2px solid black;" "color: black;" "background: transparent;")
         self.profiles_list_widget.itemSelectionChanged.connect(lambda: self.profile_selected())
 
         self.profiles_list_widget.setFixedWidth(350)
@@ -204,7 +212,7 @@ class TestApplication(QWidget):
         controller_details_layout = QVBoxLayout()
         controller_details_widget.setStyleSheet("color: blue;")
         controller_details_widget.setFont(bold_font)
-        controller_details_widget.setStyleSheet("border: 2px solid black;" "color: black;" "background: transparent;"; border-radius: 10px;")
+        controller_details_widget.setStyleSheet("border: 2px solid black;" "color: black;" "background: transparent;")
         self.main_grid_layout.addWidget(controller_details_widget, 3, 0, 8, 2)
         controller_details_layout.setContentsMargins(0, 0, 0, 0)
         controller_details_layout.setSpacing(0)
@@ -414,3 +422,4 @@ class TestApplication(QWidget):
 
         self.setLayout(self.main_grid_layout)
         QTimer.singleShot(1000, self.load_connected_devices)
+
