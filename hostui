@@ -1,3 +1,21 @@
+----------------------------
+|   GAP (Profile button)   |  ← Clear placement at the top, styled distinctly
+|--------------------------|
+| Controller Info:         |  ← Only one controller (since selected from main window)
+|   • Name: hci0           |
+|   • MAC: AA:BB:CC:...    |
+|   • Powered: Yes         |
+|   • Discoverable: Yes    |
+|--------------------------|
+| Paired Devices           |  ← List with status indicators
+|  ----------------------  |
+|  📶 Earbuds (connected)  |  ← Icon: green = connected, yellow = paired
+|  📡 Phone (paired)       |
+|  🔊 Speaker (connected)  |
+|--------------------------|
+
+
+
 import os
 import dbus
 import re
