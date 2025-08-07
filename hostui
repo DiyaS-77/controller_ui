@@ -200,52 +200,11 @@ class TestApplication(QWidget):
         self.main_grid_layout.addWidget(self.profiles_list_widget, 1, 0, 2, 2)
 
 
-
-        # Controller Details Section - Card Style Layout
         controller_details_widget = QWidget()
         controller_details_layout = QVBoxLayout()
-        controller_details_widget.setLayout(controller_details_layout)
-        controller_details_widget.setFixedWidth(350)
-        controller_details_widget.setStyleSheet("border: 2px solid black; border-radius: 10px; background-color: #f9f9f9;")
-
-        controller_details_label = QLabel("Controller Details")
-        controller_details_label.setFont(bold_font)
-        controller_details_label.setStyleSheet("color: black; padding: 5px;")
-        controller_details_layout.addWidget(controller_details_label)
-
-        def add_controller_detail(label_text, value_text):
-            detail_card = QWidget()
-            detail_layout = QVBoxLayout()
-            detail_card.setLayout(detail_layout)
-            detail_card.setStyleSheet("border: 1px solid gray; border-radius: 10px; padding: 8px; background-color: white;")
-
-            label = QLabel(label_text)
-            label.setFont(bold_font)
-            label.setStyleSheet("color: black;")
-            value = QLabel(value_text)
-            value.setStyleSheet("color: black;")
-
-            detail_layout.addWidget(label)
-            detail_layout.addWidget(value)
-            controller_details_layout.addWidget(detail_card)
-
-        self.bluetooth_device_manager.get_controller_details(interface=self.interface)
-        self.controller.name = self.bluetooth_device_manager.name
-        self.controller.bd_address = self.bluetooth_device_manager.bd_address
-        self.controller.link_policy = self.bluetooth_device_manager.link_policy
-        self.controller.lmp_version = self.bluetooth_device_manager.lmp_version
-        self.controller.link_mode = self.bluetooth_device_manager.link_mode
-        self.controller.hci_version = self.bluetooth_device_manager.hci_version
-        self.controller.manufacturer = self.bluetooth_device_manager.manufacturer
-
-        add_controller_detail("Controller Name", self.controller.name)
-        add_controller_detail("Address", self.controller.bd_address)
-        add_controller_detail("Link Mode", self.controller.link_mode)
-        add_controller_detail("Link Policy", self.controller.link_policy)
-        add_controller_detail("HCI Version", self.controller.hci_version)
-        add_controller_detail("LMP Version", self.controller.lmp_version)
-        add_controller_detail("Manufacturer", self.controller.manufacturer)
-
+        controller_details_widget.setStyleSheet("color: blue;")
+        controller_details_widget.setFont(bold_font)
+        controller_details_widget.setStyleSheet("border: 2px solid black;" "color: black;" "background: transparent;")
         self.main_grid_layout.addWidget(controller_details_widget, 3, 0, 8, 2)
         controller_details_layout.setContentsMargins(0, 0, 0, 0)
         controller_details_layout.setSpacing(0)
