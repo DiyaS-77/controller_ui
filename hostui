@@ -85,21 +85,32 @@ class TestApplication(QWidget):
 
 
     def load_connected_devices(self):
+        """
+        Loads and displays all paired and currently connected Bluetooth devices
+        into the profiles list widget.
+
+        args: None
+        returns: None
+        """
+        self.paired_devices={}
+        self.connected_devices={}
+        gap_index = self.profiles_list_widget.count() - 1
         self.paired_devices = self.bluetooth_device_manager.get_paired_devices()
         self.connected_devices = self.bluetooth_device_manager.get_connected_devices()
-        self.profiles_list_widget.clear()
-        gap_item = QListWidgetItem("GAP")
-        gap_item.setFont(QFont("Arial", 10, QFont.Weight.Bold))
-        self.profiles_list_widget.addItem(gap_item)
+
+        # Use a set to avoid duplicates
         unique_devices = set(self.paired_devices.keys()).union(self.connected_devices.keys())
+
         for device_address in unique_devices:
-            is_connected = device_address in self.connected_devices
-            status_icon = "✔️" if is_connected else "⚪"
-            display_text = f"{device_address} {status_icon}"
+            device_name = self.bluetooth_device_manager.get_device_name(device_address)
+            display_text = f"{device_address} ({device_name})" if device_name else device_address
+
             device_item = QListWidgetItem(display_text)
             device_item.setFont(QFont("Arial", 10))
             device_item.setForeground(Qt.GlobalColor.black)
-            self.profiles_list_widget.addItem(device_item)
+            gap_index += 1
+            self.profiles_list_widget.insertItem(gap_index, device_item)
+
     def is_bluetooth_address(self, text):
         pattern = r"^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$"
         return re.match(pattern, text) is not None
@@ -182,7 +193,7 @@ class TestApplication(QWidget):
         self.main_grid_layout.addLayout(header_layout, 0, 0, 1, 2)
 
         self.profiles_list_widget.setFont(bold_font)
-        self.profiles_list_widget.setStyleSheet("border: 2px solid black;" "color: black;" "background: transparent;")
+        self.profiles_list_widget.setStyleSheet("border: 2px solid black;" "color: black;" "background: transparent;"; border-radius: 10px;")
         self.profiles_list_widget.itemSelectionChanged.connect(lambda: self.profile_selected())
 
         self.profiles_list_widget.setFixedWidth(350)
@@ -193,7 +204,7 @@ class TestApplication(QWidget):
         controller_details_layout = QVBoxLayout()
         controller_details_widget.setStyleSheet("color: blue;")
         controller_details_widget.setFont(bold_font)
-        controller_details_widget.setStyleSheet("border: 2px solid black;" "color: black;" "background: transparent;")
+        controller_details_widget.setStyleSheet("border: 2px solid black;" "color: black;" "background: transparent;"; border-radius: 10px;")
         self.main_grid_layout.addWidget(controller_details_widget, 3, 0, 8, 2)
         controller_details_layout.setContentsMargins(0, 0, 0, 0)
         controller_details_layout.setSpacing(0)
@@ -403,4 +414,3 @@ class TestApplication(QWidget):
 
         self.setLayout(self.main_grid_layout)
         QTimer.singleShot(1000, self.load_connected_devices)
-
